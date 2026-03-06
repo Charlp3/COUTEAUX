@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>COUTEAU</title>
+  <style>
+    :root{
+      --bg: #efe5d3;
+      --bg2: #e4d5bc;
+      --bg3: #d8c6a8;
+      --sand: #ccb48c;
+      --sand-dark: #a78557;
+      --line: #9a805e;
+      --text: #3f3122;
+      --text-soft: #6b5943;
+      --header: #cdb38b;
+      --white: #fffaf2;
+      --accent: #866a42;
+      --danger: #9a4c3e;
+      --success: #6a7c4f;
+      --shadow: 0 6px 18px rgba(75, 54, 28, 0.12);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body{
+      margin:0;
+      font-family: var(--font);
+      background: linear-gradient(180deg, var(--bg), #f6eedf);
+      color: var(--text);
+    }
+
+    .app{
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 14px;
+    }
+
+    .topbar{
+      background: linear-gradient(180deg, var(--bg2), var(--bg3));
+      border: 1px solid rgba(122, 94, 58, 0.22);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      padding: 16px 18px 14px;
+      margin-bottom: 14px;
+    }
+
+    .title-row{
+      display:flex;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    h1{
+      margin:0;
+      font-size: 1.8rem;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+    }
+
+    .meta{
+      font-size: 0.98rem;
+      color: var(--text-soft);
+      font-weight: 600;
+    }
+
+    .toolbar{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap:10px;
+      margin-top: 14px;
+    }
+
+    .toolbar-group{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      background: rgba(255,250,242,0.55);
+      border:1px solid rgba(122,94,58,.15);
+      padding:10px;
+      border-radius: 12px;
+    }
+
+    button, .file-label{
+      border:none;
+      background: var(--sand);
+      color: #2f2418;
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: transform .08s ease, opacity .15s ease, background .15s ease;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+
+    button:hover, .file-label:hover { opacity:.95; }
+    button:active, .file-label:active { transform: translateY(1px); }
+
+    .primary { background: #b99967; color: #fffaf3; }
+    .danger { background: #bf8a7f; color: #fffaf5; }
+    .success { background: #90a06f; color: #fffaf5; }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="date"],
+    select,
+    textarea{
+      width:100%;
+      padding:10px 11px;
+      border-radius: 10px;
+      border:1px solid rgba(120,92,56,0.28);
+      background: #fffaf3;
+      color: var(--text);
+      font: inherit;
+    }
+
+    input[type="checkbox"]{
+      transform: scale(1.15);
+      accent-color: var(--accent);
+      cursor:pointer;
+    }
+
+    textarea{
+      min-height: 72px;
+      resize: vertical;
+    }
+
+    .search-wrap{
+      display:flex;
+      gap:8px;
+      width:100%;
+    }
+
+    .search-wrap input{
+      flex:1;
+    }
+
+    .panel{
+      background: rgba(255,250,242,.78);
+      border:1px solid rgba(122,94,58,.18);
+      box-shadow: var(--shadow);
+      border-radius: var(--radius);
+      overflow:hidden;
+      margin-bottom: 14px;
+    }
+
+    .table-wrap{
+      overflow:auto;
+      border-top:1px solid rgba(122,94,58,.14);
+    }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      min-width: 1100px;
+      table-layout: fixed;
+      background: #fbf6ed;
+    }
+
+    thead th{
+      position: relative;
+      background: linear-gradient(180deg, #d7c1a0, #ccb18a);
+      color: #3a2b1c;
+      text-align:left;
+      padding: 12px 14px;
+      border-right:1px solid rgba(110,85,54,.2);
+      border-bottom:1px solid rgba(110,85,54,.25);
+      font-size: 0.96rem;
+      user-select: none;
+    }
+
+    tbody td{
+      border-right:1px solid rgba(122,94,58,.10);
+      border-bottom:1px solid rgba(122,94,58,.10);
+      padding: 6px;
+      vertical-align: top;
+      background:#fffaf2;
+    }
+
+    tbody tr:nth-child(even) td{
+      background:#f5ecde;
+    }
+
+    tbody tr.selected td{
+      background:#efe0c8 !important;
+      box-shadow: inset 0 0 0 1px rgba(134,106,66,.25);
+    }
+
+    .cell-input, .cell-textarea{
+      width:100%;
+      border:none;
+      outline:none;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      padding: 6px 8px;
+      border-radius:8px;
+    }
+
+    .cell-input:focus, .cell-textarea:focus{
+      background: rgba(255,255,255,.72);
+      box-shadow: inset 0 0 0 1px rgba(134,106,66,.25);
+    }
+
+    .cell-textarea{
+      min-height: 52px;
+      resize: vertical;
+    }
+
+    .col-resizer{
+      position:absolute;
+      top:0;
+      right:0;
+      width:10px;
+      height:100%;
+      cursor: col-resize;
+      user-select:none;
+    }
+
+    .bottom-grid{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+    }
+
+    .card{
+      background: rgba(255,250,242,.85);
+      border:1px solid rgba(122,94,58,.18);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px;
+    }
+
+    .card h2{
+      margin: 0 0 12px;
+      font-size: 1.1rem;
+      color: var(--accent);
+    }
+
+    .details-grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap:10px 12px;
+    }
+
+    .details-grid .full{
+      grid-column: 1 / -1;
+    }
+
+    .inline{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .muted{
+      color: var(--text-soft);
+      font-size: 0.95rem;
+    }
+
+    .footer-note{
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: var(--text-soft);
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:#eadcc6;
+      color:#4b3825;
+      font-size: .9rem;
+      font-weight: 700;
+    }
+
+    .hidden{
+      display:none !important;
+    }
+
+    .small{
+      font-size: .88rem;
+    }
+
+    .status{
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: #efe3cf;
+      color: #5e4830;
+      min-height: 40px;
+      display:flex;
+      align-items:center;
+    }
+
+    @media (max-width: 980px){
+      .bottom-grid{
+        grid-template-columns: 1fr;
+      }
+      .details-grid{
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="title-row">
+        <div>
+          <h1>COUTEAU</h1>
+          <div class="meta" id="appMeta">© Pierre Charlier 2026 — version 1.0 — 0 couteau</div>
+        </div>
+        <div class="badge" id="countBadge">Collection : 0</div>
+      </div>
+
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <button class="primary" id="addBtn">+ Ajouter</button>
+          <button id="duplicateBtn">Dupliquer</button>
+          <button class="danger" id="deleteBtn">Supprimer</button>
+        </div>
+
+        <div class="toolbar-group">
+          <button class="success" id="exportBtn">Exporter JSON</button>
+          <label class="file-label" for="importFile">Importer JSON</label>
+          <input id="importFile" type="file" accept=".json,application/json" class="hidden" />
+          <button id="saveBtn">Sauver localement</button>
+        </div>
+
+        <div class="toolbar-group">
+          <button id="sortBrandBtn">Trier Marque</button>
+          <button id="sortModelBtn">Trier Modèle</button>
+          <button id="sortUsageBtn">Trier Usage</button>
+        </div>
+
+        <div class="toolbar-group">
+          <div class="search-wrap">
+            <input type="text" id="searchInput" placeholder="Rechercher marque, modèle, ref, usage, notes..." />
+            <button id="clearSearchBtn">Effacer</button>
+          </div>
+        </div>
+
+        <div class="toolbar-group">
+          <button id="sampleBtn">Exemple</button>
+          <button class="danger" id="clearAllBtn">Vider tout</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="table-wrap">
+        <table id="knifeTable">
+          <colgroup>
+            <col style="width: 150px" />
+            <col style="width: 180px" />
+            <col style="width: 140px" />
+            <col style="width: 150px" />
+            <col style="width: 120px" />
+            <col style="width: 360px" />
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Marque<div class="col-resizer"></div></th>
+              <th>Modèle<div class="col-resizer"></div></th>
+              <th>Ref<div class="col-resizer"></div></th>
+              <th>Usage<div class="col-resizer"></div></th>
+              <th>dimension<div class="col-resizer"></div></th>
+              <th>Notes<div class="col-resizer"></div></th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="bottom-grid">
+      <div class="card">
+        <h2>Fiche complémentaire du couteau sélectionné</h2>
+        <div class="details-grid">
+          <div>
+            <label>Acier</label>
+            <input type="text" id="detailSteel" placeholder="Ex. 12C27, VG-10, 5Cr15MoV..." />
+          </div>
+          <div>
+            <label>État</label>
+            <select id="detailCondition">
+              <option value="">—</option>
+              <option>Neuf</option>
+              <option>Très bon</option>
+              <option>Bon</option>
+              <option>Correct</option>
+              <option>À restaurer</option>
+            </select>
+          </div>
+          <div>
+            <label>Poids (g)</label>
+            <input type="number" id="detailWeight" min="0" step="1" />
+          </div>
+          <div>
+            <label>Verrouillage</label>
+            <input type="text" id="detailLock" placeholder="Slipjoint, liner lock, back lock..." />
+          </div>
+          <div>
+            <label>Étui</label>
+            <input type="text" id="detailSheath" placeholder="Cuir, nylon, aucun..." />
+          </div>
+          <div>
+            <label>Pays</label>
+            <input type="text" id="detailCountry" placeholder="Suisse, France, Espagne..." />
+          </div>
+          <div>
+            <label>Date d’acquisition</label>
+            <input type="date" id="detailAcquired" />
+          </div>
+          <div>
+            <label>Prix d’achat</label>
+            <input type="number" id="detailPrice" min="0" step="0.01" />
+          </div>
+          <div>
+            <label>Valeur estimée</label>
+            <input type="number" id="detailValue" min="0" step="0.01" />
+          </div>
+          <div class="inline">
+            <label>Favori</label>
+            <input type="checkbox" id="detailFavorite" />
+          </div>
+          <div class="full">
+            <label>Remarques complémentaires</label>
+            <textarea id="detailExtraNotes" placeholder="Observations, origine, rareté, historique, état du tranchant..."></textarea>
+          </div>
+        </div>
+        <div class="footer-note">
+          Ces champs complémentaires sont enregistrés dans le JSON mais ne s’affichent pas dans le tableau principal.
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Informations & actions</h2>
+        <div class="inline" style="margin-bottom:10px;">
+          <span class="badge" id="statsCount">0 couteau</span>
+          <span class="badge" id="statsFav">0 favori</span>
+        </div>
+
+        <div class="muted" style="margin-bottom:10px;">
+          Astuce : tu peux redimensionner les colonnes en glissant le bord droit des en-têtes.
+        </div>
+
+        <div class="status" id="statusBox">
+          Application prête.
+        </div>
+
+        <div class="footer-note">
+          Sauvegarde locale automatique à chaque modification + export/import JSON manuel.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const APP_NAME = "COUTEAU";
+    const APP_VERSION = "1.0";
+    const STORAGE_KEY = "couteau_collection_v1";
+    const COLUMN_KEY = "couteau_columns_v1";
+
+    const defaultColumns = [150, 180, 140, 150, 120, 360];
+
+    let knives = [];
+    let selectedId = null;
+    let searchTerm = "";
+
+    const tableBody = document.getElementById("tableBody");
+    const appMeta = document.getElementById("appMeta");
+    const countBadge = document.getElementById("countBadge");
+    const statsCount = document.getElementById("statsCount");
+    const statsFav = document.getElementById("statsFav");
+    const statusBox = document.getElementById("statusBox");
+    const searchInput = document.getElementById("searchInput");
+
+    const detailFields = {
+      steel: document.getElementById("detailSteel"),
+      condition: document.getElementById("detailCondition"),
+      weight: document.getElementById("detailWeight"),
+      lock: document.getElementById("detailLock"),
+      sheath: document.getElementById("detailSheath"),
+      country: document.getElementById("detailCountry"),
+      acquired: document.getElementById("detailAcquired"),
+      price: document.getElementById("detailPrice"),
+      value: document.getElementById("detailValue"),
+      favorite: document.getElementById("detailFavorite"),
+      extraNotes: document.getElementById("detailExtraNotes")
+    };
+
+    function createKnife(data = {}) {
+      return {
+        id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+        marque: "",
+        modele: "",
+        ref: "",
+        usage: "",
+        dimension: "",
+        notes: "",
+        details: {
+          steel: "",
+          condition: "",
+          weight: "",
+          lock: "",
+          sheath: "",
+          country: "",
+          acquired: "",
+          price: "",
+          value: "",
+          favorite: false,
+          extraNotes: ""
+        },
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        ...data,
+        details: {
+          steel: "",
+          condition: "",
+          weight: "",
+          lock: "",
+          sheath: "",
+          country: "",
+          acquired: "",
+          price: "",
+          value: "",
+          favorite: false,
+          extraNotes: "",
+          ...(data.details || {})
+        }
+      };
+    }
+
+    function exampleData() {
+      return [
+        createKnife({
+          marque: "Victorinox",
+          modele: "Pioneer",
+          ref: "Alox",
+          usage: "EDC / petit dépannage",
+          dimension: "93 mm",
+          notes: "Solide, simple, compact.",
+          details: {
+            steel: "Inox Victorinox",
+            condition: "Très bon",
+            weight: "71",
+            lock: "Slipjoint",
+            sheath: "",
+            country: "Suisse",
+            acquired: "",
+            price: "",
+            value: "",
+            favorite: true,
+            extraNotes: "Très agréable en poche."
+          }
+        }),
+        createKnife({
+          marque: "Opinel",
+          modele: "N°8 Carbone",
+          ref: "",
+          usage: "Campagne / cuisine / jardin",
+          dimension: "8,5 cm lame",
+          notes: "Excellent rapport qualité/prix.",
+          details: {
+            steel: "XC90",
+            condition: "Bon",
+            weight: "45",
+            lock: "Virobloc",
+            sheath: "",
+            country: "France",
+            acquired: "",
+            price: "",
+            value: "",
+            favorite: false,
+            extraNotes: ""
+          }
+        })
+      ];
+    }
+
+    function setStatus(msg) {
+      statusBox.textContent = msg;
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        app: APP_NAME,
+        version: APP_VERSION,
+        updatedAt: new Date().toISOString(),
+        knives
+      }));
+      updateMeta();
+      setStatus("Données sauvegardées localement.");
+    }
+
+    function loadData() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        knives = [];
+        return;
+      }
+      try {
+        const parsed = JSON.parse(raw);
+        knives = (parsed.knives || []).map(k => createKnife(k));
+      } catch (e) {
+        knives = [];
+        setStatus("Impossible de lire la sauvegarde locale.");
+      }
+    }
+
+    function saveColumns() {
+      const widths = [...document.querySelectorAll("#knifeTable colgroup col")]
+        .map(col => parseInt(col.style.width, 10) || 120);
+      localStorage.setItem(COLUMN_KEY, JSON.stringify(widths));
+    }
+
+    function loadColumns() {
+      const raw = localStorage.getItem(COLUMN_KEY);
+      const cols = document.querySelectorAll("#knifeTable colgroup col");
+      let widths = defaultColumns;
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length === cols.length) {
+            widths = parsed;
+          }
+        } catch (e) {}
+      }
+      cols.forEach((col, i) => {
+        col.style.width = (widths[i] || defaultColumns[i] || 140) + "px";
+      });
+    }
+
+    function updateMeta() {
+      const count = knives.length;
+      appMeta.textContent = `© Pierre Charlier 2026 — version ${APP_VERSION} — ${count} ${count > 1 ? "couteaux" : "couteau"}`;
+      countBadge.textContent = `Collection : ${count}`;
+      statsCount.textContent = `${count} ${count > 1 ? "couteaux" : "couteau"}`;
+      const favs = knives.filter(k => k.details?.favorite).length;
+      statsFav.textContent = `${favs} favori${favs > 1 ? "s" : ""}`;
+    }
+
+    function getFilteredKnives() {
+      if (!searchTerm.trim()) return knives;
+      const q = searchTerm.toLowerCase();
+      return knives.filter(k =>
+        [
+          k.marque, k.modele, k.ref, k.usage, k.dimension, k.notes,
+          k.details?.steel, k.details?.condition, k.details?.country, k.details?.extraNotes
+        ]
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+      );
+    }
+
+    function renderTable() {
+      const filtered = getFilteredKnives();
+      tableBody.innerHTML = "";
+
+      filtered.forEach(knife => {
+        const tr = document.createElement("tr");
+        if (knife.id === selectedId) tr.classList.add("selected");
+        tr.dataset.id = knife.id;
+
+        tr.appendChild(makeCellInput(knife, "marque"));
+        tr.appendChild(makeCellInput(knife, "modele"));
+        tr.appendChild(makeCellInput(knife, "ref"));
+        tr.appendChild(makeCellInput(knife, "usage"));
+        tr.appendChild(makeCellInput(knife, "dimension"));
+        tr.appendChild(makeCellTextarea(knife, "notes"));
+
+        tr.addEventListener("click", (e) => {
+          if (e.target.classList.contains("cell-input") || e.target.classList.contains("cell-textarea")) return;
+          selectedId = knife.id;
+          renderTable();
+          loadSelectedDetails();
+        });
+
+        tableBody.appendChild(tr);
+      });
+
+      updateMeta();
+      loadSelectedDetails();
+    }
+
+    function makeCellInput(knife, field) {
+      const td = document.createElement("td");
+      const input = document.createElement("input");
+      input.type = "text";
+      input.className = "cell-input";
+      input.value = knife[field] || "";
+      input.placeholder = field.charAt(0).toUpperCase() + field.slice(1);
+      input.addEventListener("focus", () => {
+        selectedId = knife.id;
+        renderTable();
+      });
+      input.addEventListener("input", () => {
+        knife[field] = input.value;
+        knife.updatedAt = new Date().toISOString();
+        saveData();
+        updateMeta();
+      });
+      td.appendChild(input);
+      return td;
+    }
+
+    function makeCellTextarea(knife, field) {
+      const td = document.createElement("td");
+      const textarea = document.createElement("textarea");
+      textarea.className = "cell-textarea";
+      textarea.value = knife[field] || "";
+      textarea.placeholder = "Notes";
+      textarea.addEventListener("focus", () => {
+        selectedId = knife.id;
+        renderTable();
+      });
+      textarea.addEventListener("input", () => {
+        knife[field] = textarea.value;
+        knife.updatedAt = new Date().toISOString();
+        saveData();
+        updateMeta();
+      });
+      td.appendChild(textarea);
+      return td;
+    }
+
+    function getSelectedKnife() {
+      return knives.find(k => k.id === selectedId) || null;
+    }
+
+    function clearDetailsPanel() {
+      Object.entries(detailFields).forEach(([key, el]) => {
+        if (el.type === "checkbox") {
+          el.checked = false;
+        } else {
+          el.value = "";
+        }
+      });
+    }
+
+    function loadSelectedDetails() {
+      const knife = getSelectedKnife();
+      if (!knife) {
+        clearDetailsPanel();
+        return;
+      }
+      detailFields.steel.value = knife.details.steel || "";
+      detailFields.condition.value = knife.details.condition || "";
+      detailFields.weight.value = knife.details.weight || "";
+      detailFields.lock.value = knife.details.lock || "";
+      detailFields.sheath.value = knife.details.sheath || "";
+      detailFields.country.value = knife.details.country || "";
+      detailFields.acquired.value = knife.details.acquired || "";
+      detailFields.price.value = knife.details.price || "";
+      detailFields.value.value = knife.details.value || "";
+      detailFields.favorite.checked = !!knife.details.favorite;
+      detailFields.extraNotes.value = knife.details.extraNotes || "";
+    }
+
+    function bindDetailPanel() {
+      Object.entries(detailFields).forEach(([key, el]) => {
+        const eventName = el.tagName === "SELECT" || el.type === "checkbox" ? "change" : "input";
+        el.addEventListener(eventName, () => {
+          const knife = getSelectedKnife();
+          if (!knife) return;
+          knife.details[key] = el.type === "checkbox" ? el.checked : el.value;
+          knife.updatedAt = new Date().toISOString();
+          saveData();
+          updateMeta();
+        });
+      });
+    }
+
+    function addKnife(data = {}) {
+      const knife = createKnife(data);
+      knives.push(knife);
+      selectedId = knife.id;
+      renderTable();
+      saveData();
+      setStatus("Nouveau couteau ajouté.");
+    }
+
+    function duplicateSelected() {
+      const knife = getSelectedKnife();
+      if (!knife) {
+        setStatus("Aucun couteau sélectionné.");
+        return;
+      }
+      const copy = createKnife(JSON.parse(JSON.stringify(knife)));
+      copy.id = crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
+      copy.modele = (copy.modele || "") + " (copie)";
+      knives.push(copy);
+      selectedId = copy.id;
+      renderTable();
+      saveData();
+      setStatus("Couteau dupliqué.");
+    }
+
+    function deleteSelected() {
+      const knife = getSelectedKnife();
+      if (!knife) {
+        setStatus("Aucun couteau sélectionné.");
+        return;
+      }
+      const ok = confirm(`Supprimer ce couteau ?\n\n${knife.marque || ""} ${knife.modele || ""}`.trim());
+      if (!ok) return;
+      knives = knives.filter(k => k.id !== knife.id);
+      selectedId = knives[0]?.id || null;
+      renderTable();
+      saveData();
+      setStatus("Couteau supprimé.");
+    }
+
+    function exportJSON() {
+      const payload = {
+        app: APP_NAME,
+        version: APP_VERSION,
+        exportedAt: new Date().toISOString(),
+        count: knives.length,
+        knives
+      };
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      const date = new Date().toISOString().slice(0,10);
+      a.href = url;
+      a.download = `COUTEAU_${date}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setStatus("Export JSON effectué.");
+    }
+
+    function importJSON(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          const imported = Array.isArray(parsed) ? parsed : (parsed.knives || []);
+          knives = imported.map(k => createKnife(k));
+          selectedId = knives[0]?.id || null;
+          renderTable();
+          saveData();
+          setStatus("Import JSON réussi.");
+        } catch (e) {
+          alert("Le fichier JSON n'est pas valide.");
+          setStatus("Import JSON impossible.");
+        }
+      };
+      reader.readAsText(file, "utf-8");
+    }
+
+    function sortBy(field) {
+      knives.sort((a, b) => (a[field] || "").localeCompare((b[field] || ""), "fr", { sensitivity: "base" }));
+      renderTable();
+      saveData();
+      setStatus(`Tri effectué par ${field}.`);
+    }
+
+    function clearAll() {
+      if (!knives.length) return;
+      const ok = confirm("Effacer toute la collection ?");
+      if (!ok) return;
+      knives = [];
+      selectedId = null;
+      renderTable();
+      saveData();
+      setStatus("Toute la collection a été effacée.");
+    }
+
+    function setupColumnResize() {
+      const table = document.getElementById("knifeTable");
+      const ths = table.querySelectorAll("thead th");
+      const cols = table.querySelectorAll("colgroup col");
+
+      ths.forEach((th, index) => {
+        const resizer = th.querySelector(".col-resizer");
+        let startX = 0;
+        let startWidth = 0;
+
+        const onMove = (e) => {
+          const dx = e.clientX - startX;
+          const newWidth = Math.max(80, startWidth + dx);
+          cols[index].style.width = newWidth + "px";
+        };
+
+        const onUp = () => {
+          document.removeEventListener("mousemove", onMove);
+          document.removeEventListener("mouseup", onUp);
+          saveColumns();
+          setStatus("Largeur des colonnes enregistrée.");
+        };
+
+        resizer.addEventListener("mousedown", (e) => {
+          startX = e.clientX;
+          startWidth = th.offsetWidth;
+          document.addEventListener("mousemove", onMove);
+          document.addEventListener("mouseup", onUp);
+          e.preventDefault();
+        });
+      });
+    }
+
+    document.getElementById("addBtn").addEventListener("click", () => addKnife());
+    document.getElementById("duplicateBtn").addEventListener("click", duplicateSelected);
+    document.getElementById("deleteBtn").addEventListener("click", deleteSelected);
+    document.getElementById("exportBtn").addEventListener("click", exportJSON);
+    document.getElementById("saveBtn").addEventListener("click", () => {
+      saveData();
+      setStatus("Sauvegarde locale effectuée.");
+    });
+    document.getElementById("sortBrandBtn").addEventListener("click", () => sortBy("marque"));
+    document.getElementById("sortModelBtn").addEventListener("click", () => sortBy("modele"));
+    document.getElementById("sortUsageBtn").addEventListener("click", () => sortBy("usage"));
+    document.getElementById("clearAllBtn").addEventListener("click", clearAll);
+    document.getElementById("sampleBtn").addEventListener("click", () => {
+      if (knives.length && !confirm("Remplacer la collection actuelle par un exemple ?")) return;
+      knives = exampleData();
+      selectedId = knives[0]?.id || null;
+      renderTable();
+      saveData();
+      setStatus("Exemple chargé.");
+    });
+
+    document.getElementById("importFile").addEventListener("change", (e) => {
+      importJSON(e.target.files[0]);
+      e.target.value = "";
+    });
+
+    searchInput.addEventListener("input", () => {
+      searchTerm = searchInput.value;
+      renderTable();
+      setStatus(searchTerm ? "Filtre de recherche appliqué." : "Recherche effacée.");
+    });
+
+    document.getElementById("clearSearchBtn").addEventListener("click", () => {
+      searchInput.value = "";
+      searchTerm = "";
+      renderTable();
+      setStatus("Recherche effacée.");
+    });
+
+    function init() {
+      loadData();
+      loadColumns();
+      if (!knives.length) {
+        knives = [];
+      }
+      selectedId = knives[0]?.id || null;
+      renderTable();
+      bindDetailPanel();
+      setupColumnResize();
+      updateMeta();
+      setStatus("Application prête.");
+    }
+
+    init();
+  </script>
+</body>
+</html>
