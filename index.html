@@ -582,7 +582,7 @@
       const count = knives.length;
       const favs = knives.filter(k => k.details.favorite).length;
 
-      appMeta.textContent = `© Pierre Charlier 2026 — version ${APP_VERSION} — ${count} ${count > 1 ? "couteaux" : "couteau"}`;
+      appMeta.textContent = `© Pierre Charlier 2026 — version ${APP_VERSION} — ${count} ${count > 1 ? "pièces" : "pièce"}`;
       countBadge.textContent = `Collection : ${count}`;
       statsCount.textContent = `${count} ${count > 1 ? "couteaux" : "couteau"}`;
       statsFav.textContent = `${favs} favori${favs > 1 ? "s" : ""}`;
