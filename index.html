@@ -61,8 +61,6 @@
     .btn.accent{background:linear-gradient(180deg,#c89a4d 0%,#9a6d21 100%)}
     .btn.secondary{background:linear-gradient(180deg,#3c434b 0%,#2f353b 100%)}
     .btn.danger{background:linear-gradient(180deg,#bb6a6a 0%,#8f4e4e 100%)}
-    
-    
 
     .table-wrap{overflow:auto;-webkit-overflow-scrolling:touch;background:#25292d}
     table{width:100%;min-width:980px;border-collapse:collapse}
@@ -75,6 +73,7 @@
     tbody td{border-bottom:1px solid #434b54;padding:0;vertical-align:top}
     tbody tr:nth-child(odd){background:#30353a}
     tbody tr:nth-child(even){background:#3a4046}
+
     td input, td textarea{
       width:100%;border:0;outline:none;background:transparent;color:var(--text);font-size:.95rem;border-radius:0;
     }
@@ -99,9 +98,6 @@
       background:#23272b;color:#dfe7ec;min-height:44px;
     }
     .status.ok{color:#cce8c8}.status.warn{color:#f0d39b}.status.err{color:#f2b1b1}
-
-    
-    
 
     @media (max-width:820px){
       .toolbar{grid-template-columns:1fr}
@@ -131,14 +127,13 @@
           <h1>Couteaux</h1>
           <div class="count-pill" id="countPill">0</div>
         </div>
-        <div class="subtitle">Collection personnelle — tableau simple, sauvegarde JSON, recherche, tri et impression PDF — v1.4</div>
+        <div class="subtitle">Collection personnelle — tableau simple, sauvegarde JSON, recherche, tri et impression PDF — v1.5</div>
       </div>
 
       <div class="toolbar">
         <div class="toolbar-left">
           <input type="search" id="searchInput" placeholder="Recherche dans le tableau…" />
           <button type="button" class="btn accent" id="addRowBtn">+ Ajouter une pièce</button>
-          
         </div>
         <div class="toolbar-right">
           <button type="button" class="btn secondary" id="saveJsonBtn">Sauvegarder JSON</button>
@@ -168,7 +163,7 @@
       <div class="status" id="statusBar">Prêt.</div>
 
       <div class="footer">
-        <div>© Pierre Charlier 2026 — v1.4</div>
+        <div>© Pierre Charlier 2026 — v1.5</div>
         <div class="small">Capacité prévue : 50 pièces maximum</div>
       </div>
     </div>
@@ -177,17 +172,14 @@
   <script>
     (() => {
       const MAX_ITEMS = 50;
-      const STORAGE_KEY = "couteaux_collection_v1_3";
-      
+      const STORAGE_KEY = "couteaux_collection_v1_5";
 
       const els = {
-        table: document.getElementById("knivesTable"),
         tableBody: document.getElementById("tableBody"),
         countPill: document.getElementById("countPill"),
         statusBar: document.getElementById("statusBar"),
         searchInput: document.getElementById("searchInput"),
         addRowBtn: document.getElementById("addRowBtn"),
-        lockBtn: document.getElementById("lockBtn"),
         saveJsonBtn: document.getElementById("saveJsonBtn"),
         loadJsonInput: document.getElementById("loadJsonInput"),
         printBtn: document.getElementById("printBtn"),
@@ -197,7 +189,6 @@
 
       let data = [];
       let sortState = { key: null, dir: 1 };
-      
 
       function uid() {
         return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
@@ -220,11 +211,10 @@
         els.statusBar.className = "status" + (kind ? " " + kind : "");
       }
 
-      function saveLocal() {
+      function saveLocal(silent = false) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-          // lock not persisted
-
+          if (!silent) setStatus("Enregistré automatiquement.", "ok");
         } catch (e) {
           setStatus("Sauvegarde locale impossible.", "err");
         }
@@ -233,21 +223,17 @@
       function loadLocal() {
         try {
           const raw = localStorage.getItem(STORAGE_KEY);
-          
-          if (raw) {
-            const parsed = JSON.parse(raw);
-            if (Array.isArray(parsed)) {
-              data = parsed.slice(0, MAX_ITEMS).map(item => ({
-                id: item.id || uid(),
-                brand: item.brand || "",
-                model: item.model || "",
-                reference: item.reference || "",
-                length: item.length || "",
-                notes: item.notes || ""
-              }));
-            }
-          }
-          
+          if (!raw) return;
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed)) return;
+          data = parsed.slice(0, MAX_ITEMS).map(item => ({
+            id: item.id || uid(),
+            brand: item.brand || "",
+            model: item.model || "",
+            reference: item.reference || "",
+            length: item.length || "",
+            notes: item.notes || ""
+          }));
         } catch (e) {
           setStatus("Impossible de relire la sauvegarde locale.", "err");
         }
@@ -255,20 +241,6 @@
 
       function updateCount() {
         els.countPill.textContent = String(data.length);
-      }
-
-      function _removed_updateLockUI() {
-        if (false) {
-          els.lockBtn.textContent = "MODIFIABLE";
-          els.lockBtn.classList.add("ok");
-          els.lockBtn.classList.remove("locked");
-          els.table.classList.add("locked-mode");
-        } else {
-          els.lockBtn.textContent = "FIGÉ";
-          els.lockBtn.classList.remove("ok");
-          els.lockBtn.classList.add("locked");
-          els.table.classList.remove("locked-mode");
-        }
       }
 
       function autoResizeTextarea(textarea) {
@@ -291,35 +263,29 @@
 
           tr.dataset.id = row.id;
           tr.innerHTML = `
-            <td><input data-field="brand" value="${escapeHtml(row.brand)}" ${""}></td>
-            <td><input data-field="model" value="${escapeHtml(row.model)}" ${""}></td>
-            <td><input data-field="reference" value="${escapeHtml(row.reference)}" ${""}></td>
-            <td><input data-field="length" value="${escapeHtml(row.length)}" ${""}></td>
+            <td><input data-field="brand" value="${escapeHtml(row.brand)}"></td>
+            <td><input data-field="model" value="${escapeHtml(row.model)}"></td>
+            <td><input data-field="reference" value="${escapeHtml(row.reference)}"></td>
+            <td><input data-field="length" value="${escapeHtml(row.length)}"></td>
             <td class="actions"><button type="button" class="row-delete" title="Supprimer">×</button></td>
-            <td class="notes"><textarea data-field="notes" ${""}>${escapeHtml(row.notes)}</textarea></td>
+            <td class="notes"><textarea data-field="notes">${escapeHtml(row.notes)}</textarea></td>
           `;
           els.tableBody.appendChild(tr);
         }
 
         document.querySelectorAll("td.notes textarea").forEach(autoResizeTextarea);
         updateCount();
-        
-
         if (query) setStatus(`${visibleCount} ligne(s) affichée(s) pour la recherche.`);
-        else setStatus(locked ? "Tableau figé." : "Tableau modifiable.");
+        else setStatus("Tableau modifiable.");
       }
 
       function addRow() {
-        if (false) {
-          setStatus("Le tableau est figé. Défige-le d’abord.", "warn");
-          return;
-        }
         if (data.length >= MAX_ITEMS) {
           setStatus("Limite atteinte : 50 pièces maximum.", "warn");
           return;
         }
         data.push(emptyRow());
-        saveLocal();
+        saveLocal(true);
         render();
         const lastInput = els.tableBody.querySelector("tr:last-child input");
         if (lastInput) lastInput.focus();
@@ -327,12 +293,8 @@
       }
 
       function deleteRow(id) {
-        if (false) {
-          setStatus("Le tableau est figé. Suppression impossible.", "warn");
-          return;
-        }
         data = data.filter(r => r.id !== id);
-        saveLocal();
+        saveLocal(true);
         render();
         setStatus("Ligne supprimée.", "ok");
       }
@@ -341,7 +303,7 @@
         const row = data.find(r => r.id === id);
         if (!row) return;
         row[field] = value;
-        saveLocal();
+        saveLocal(true);
       }
 
       function labelFor(key) {
@@ -364,13 +326,13 @@
           return cmp * sortState.dir;
         });
 
-        saveLocal();
+        saveLocal(true);
         render();
         setStatus(`Tri appliqué sur « ${labelFor(key)} » (${sortState.dir === 1 ? "croissant" : "décroissant"}).`, "ok");
       }
 
       function exportJson() {
-        const payload = { app: "Couteaux", version: "1.3", exportedAt: new Date().toISOString(), count: data.length, items: data };
+        const payload = { app: "Couteaux", version: "1.5", exportedAt: new Date().toISOString(), count: data.length, items: data };
         const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -398,7 +360,7 @@
               length: item.length || item.longueur || "",
               notes: item.notes || ""
             }));
-            saveLocal();
+            saveLocal(true);
             render();
             setStatus("JSON récupéré avec succès.", "ok");
           } catch (err) {
@@ -411,27 +373,14 @@
       }
 
       function clearAll() {
-        if (false) {
-          setStatus("Le tableau est figé. Impossible de vider.", "warn");
-          return;
-        }
         if (!confirm("Vider tout le tableau ?")) return;
         data = [];
-        saveLocal();
+        saveLocal(true);
         render();
         setStatus("Tableau vidé.", "ok");
       }
 
-      function _removed_toggleLock() {
-        locked = !locked;
-        saveLocal();
-        
-        render();
-        setStatus(locked ? "Tableau figé : modifications bloquées." : "Tableau défigé : modifications autorisées.", "ok");
-      }
-
       els.addRowBtn.addEventListener("click", addRow);
-      
       els.saveJsonBtn.addEventListener("click", exportJson);
       els.printBtn.addEventListener("click", () => window.print());
       els.clearBtn.addEventListener("click", clearAll);
@@ -443,7 +392,7 @@
 
       els.tableBody.addEventListener("input", (e) => {
         const field = e.target.closest("input, textarea");
-        if (!field || locked) return;
+        if (!field) return;
         const tr = field.closest("tr");
         updateField(tr.dataset.id, field.dataset.field, field.value);
         if (field.tagName === "TEXTAREA") autoResizeTextarea(field);
@@ -458,8 +407,12 @@
 
       els.headers.forEach(th => th.addEventListener("click", () => sortBy(th.dataset.key)));
 
+      window.addEventListener("beforeunload", () => saveLocal(true));
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden) saveLocal(true);
+      });
+
       loadLocal();
-      locked = false;
       render();
     })();
   </script>
