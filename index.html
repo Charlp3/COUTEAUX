@@ -846,7 +846,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `COUTEAU_${new Date().toISOString().slice(0,10)}.json`;
+      a.download = `COUTEAUX_${new Date().toISOString().slice(0,10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
       setStatus("Export JSON effectué.");
@@ -857,17 +857,29 @@
       const reader = new FileReader();
 
       reader.onload = () => {
+        let parsed;
+        let arr;
+
         try {
-          const parsed = JSON.parse(reader.result);
-          const arr = Array.isArray(parsed) ? parsed : (parsed.knives || []);
+          parsed = JSON.parse(reader.result);
+          arr = Array.isArray(parsed) ? parsed : (parsed.knives || []);
+          if (!Array.isArray(arr)) throw new Error("Structure JSON invalide");
+        } catch (e) {
+          alert("Le fichier JSON n'est pas valide.");
+          setStatus("Import JSON impossible.");
+          return;
+        }
+
+        try {
           knives = arr.map(createKnife);
           selectedId = knives[0]?.id || null;
           renderTable();
           saveData(true);
           setStatus("Import JSON réussi.");
-        } catch {
-          alert("Le fichier JSON n'est pas valide.");
-          setStatus("Import JSON impossible.");
+        } catch (e) {
+          console.error("Erreur après lecture du JSON :", e);
+          alert("Le JSON est valide, mais la sauvegarde locale Safari a échoué.");
+          setStatus("JSON lu, mais sauvegarde locale impossible.");
         }
       };
 
