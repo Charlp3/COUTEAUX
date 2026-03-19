@@ -312,7 +312,7 @@
       <div class="header-row">
         <div>
           <h1>COUTEAUX</h1>
-          <div class="meta" id="appMeta">© Pierre Charlier 2026 — version 2.1 — 0 couteau</div>
+          <div class="meta" id="appMeta">© Pierre Charlier 2026 — version 2.1c — 0 pièce</div>
         </div>
         <div class="badge" id="countBadge">Collection : 0</div>
       </div>
@@ -328,7 +328,6 @@
           <button class="success" id="exportBtn">Exporter JSON</button>
           <label class="file-label" for="importFile">Importer JSON</label>
           <input id="importFile" class="hidden" type="file" accept=".json,application/json">
-          <button id="saveBtn">Sauver localement</button>
         </div>
 
         <div class="toolgroup">
@@ -353,7 +352,7 @@
 
     <div class="panel">
       <div class="table-note">
-        Saisie directe dans le tableau. Touche un en-tête comme Marque ou Modèle pour trier. Sur iPhone, fais glisser horizontalement si toutes les colonnes ne sont pas visibles.
+        Saisie directe dans le tableau. Touche un en-tête comme Marque ou Modèle pour trier. La sauvegarde se fait quand tu quittes un champ, ce qui évite les blocages sur iPhone.
       </div>
       <div class="table-wrap">
         <table>
@@ -374,7 +373,7 @@
 
     <div class="bottom">
       <div class="card">
-        <h2>Fiche détaillée du couteau sélectionné</h2>
+        <h2>Fiche détaillée de la pièce sélectionnée</h2>
         <div class="details-grid">
           <div>
             <label for="detailSteel">Acier</label>
@@ -438,11 +437,11 @@
       <div class="card">
         <h2>Informations</h2>
         <div class="inline">
-          <div class="badge" id="statsCount">0 couteau</div>
+          <div class="badge" id="statsCount">0 pièce</div>
           <div class="badge" id="statsFav">0 favori</div>
         </div>
         <div class="muted" style="margin-top:12px;">
-          Sauvegarde automatique locale à chaque modification.
+          Sauvegarde locale automatique à la sortie des champs.
         </div>
         <div class="status" id="statusBox">Application prête.</div>
       </div>
@@ -451,7 +450,7 @@
 
   <script>
     const APP_NAME = "COUTEAUX";
-    const APP_VERSION = "2.1";
+    const APP_VERSION = "2.1c";
     const STORAGE_KEY = "couteau_collection_v2_1";
 
     let knives = [];
@@ -553,14 +552,20 @@
     }
 
     function saveData(silent = false) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        app: APP_NAME,
-        version: APP_VERSION,
-        updatedAt: new Date().toISOString(),
-        knives
-      }));
-      updateMeta();
-      if (!silent) setStatus("Données sauvegardées.");
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          app: APP_NAME,
+          version: APP_VERSION,
+          updatedAt: new Date().toISOString(),
+          knives
+        }));
+        updateMeta();
+        if (!silent) setStatus("Données sauvegardées.");
+      } catch (e) {
+        console.error("Erreur de sauvegarde :", e);
+        setStatus("Erreur de sauvegarde locale.");
+        throw e;
+      }
     }
 
     function loadData() {
@@ -626,15 +631,31 @@
 
     function bindDetailPanel() {
       Object.entries(detailFields).forEach(([key, el]) => {
-        const eventName = (el.tagName === "SELECT" || el.type === "checkbox") ? "change" : "input";
-        el.addEventListener(eventName, () => {
+        const liveEvent = (el.tagName === "SELECT" || el.type === "checkbox") ? "change" : "input";
+        const saveEvent = (el.tagName === "SELECT" || el.type === "checkbox") ? null : "blur";
+
+        el.addEventListener(liveEvent, () => {
           const knife = getSelectedKnife();
           if (!knife) return;
           knife.details[key] = el.type === "checkbox" ? el.checked : el.value;
           knife.updatedAt = new Date().toISOString();
-          saveData(true);
-          updateMeta();
+
+          if (el.tagName === "SELECT" || el.type === "checkbox") {
+            saveData(true);
+            updateMeta();
+          }
         });
+
+        if (saveEvent) {
+          el.addEventListener(saveEvent, () => {
+            const knife = getSelectedKnife();
+            if (!knife) return;
+            knife.details[key] = el.value;
+            knife.updatedAt = new Date().toISOString();
+            saveData(true);
+            updateMeta();
+          });
+        }
       });
     }
 
@@ -675,6 +696,11 @@
       input.addEventListener("input", () => {
         knife[field] = input.value;
         knife.updatedAt = new Date().toISOString();
+      });
+
+      input.addEventListener("blur", () => {
+        knife[field] = input.value;
+        knife.updatedAt = new Date().toISOString();
         saveData(true);
       });
 
@@ -696,6 +722,11 @@
       });
 
       ta.addEventListener("input", () => {
+        knife[field] = ta.value;
+        knife.updatedAt = new Date().toISOString();
+      });
+
+      ta.addEventListener("blur", () => {
         knife[field] = ta.value;
         knife.updatedAt = new Date().toISOString();
         saveData(true);
@@ -748,13 +779,13 @@
         if (firstInput) firstInput.focus();
       });
 
-      setStatus("Nouveau couteau ajouté.");
+      setStatus("Nouvelle pièce ajoutée.");
     }
 
     function duplicateSelected() {
       const knife = getSelectedKnife();
       if (!knife) {
-        setStatus("Aucun couteau sélectionné.");
+        setStatus("Aucune pièce sélectionnée.");
         return;
       }
 
@@ -765,24 +796,24 @@
       selectedId = copy.id;
       renderTable();
       saveData(true);
-      setStatus("Couteau dupliqué.");
+      setStatus("Pièce dupliquée.");
     }
 
     function deleteSelected() {
       const knife = getSelectedKnife();
       if (!knife) {
-        setStatus("Aucun couteau sélectionné.");
+        setStatus("Aucune pièce sélectionnée.");
         return;
       }
 
-      const label = `${knife.marque || ""} ${knife.modele || ""}`.trim() || "ce couteau";
+      const label = `${knife.marque || ""} ${knife.modele || ""}`.trim() || "cette pièce";
       if (!confirm(`Supprimer ${label} ?`)) return;
 
       knives = knives.filter(k => k.id !== knife.id);
       selectedId = knives[0]?.id || null;
       renderTable();
       saveData(true);
-      setStatus("Couteau supprimé.");
+      setStatus("Pièce supprimée.");
     }
 
     function exportJSON() {
@@ -798,7 +829,7 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `COUTEAU_${new Date().toISOString().slice(0,10)}.json`;
+      a.download = `COUTEAUX_${new Date().toISOString().slice(0,10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
       setStatus("Export JSON effectué.");
@@ -809,17 +840,28 @@
       const reader = new FileReader();
 
       reader.onload = () => {
+        let parsed;
+        let arr;
+
         try {
-          const parsed = JSON.parse(reader.result);
-          const arr = Array.isArray(parsed) ? parsed : (parsed.knives || []);
+          parsed = JSON.parse(reader.result);
+          arr = Array.isArray(parsed) ? parsed : (parsed.knives || []);
+        } catch (e) {
+          alert("Le fichier JSON n'est pas valide.");
+          setStatus("Import JSON impossible.");
+          return;
+        }
+
+        try {
           knives = arr.map(createKnife);
           selectedId = knives[0]?.id || null;
           renderTable();
           saveData(true);
           setStatus("Import JSON réussi.");
-        } catch {
-          alert("Le fichier JSON n'est pas valide.");
-          setStatus("Import JSON impossible.");
+        } catch (e) {
+          console.error("Erreur après lecture du JSON :", e);
+          alert("Le JSON est valide, mais la sauvegarde locale Safari a échoué.");
+          setStatus("JSON lu, mais sauvegarde locale impossible.");
         }
       };
 
@@ -866,7 +908,6 @@
     document.getElementById("duplicateBtn").addEventListener("click", duplicateSelected);
     document.getElementById("deleteBtn").addEventListener("click", deleteSelected);
     document.getElementById("exportBtn").addEventListener("click", exportJSON);
-    document.getElementById("saveBtn").addEventListener("click", () => saveData(false));
     document.getElementById("sortBrandBtn").addEventListener("click", () => sortBy("marque"));
     document.getElementById("sortModelBtn").addEventListener("click", () => sortBy("modele"));
     document.getElementById("sortUsageBtn").addEventListener("click", () => sortBy("usage"));
