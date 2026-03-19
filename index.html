@@ -562,10 +562,14 @@
         }));
         updateMeta();
         if (!silent) setStatus("Données sauvegardées.");
+        return true;
       } catch (e) {
         console.error("Erreur de sauvegarde :", e);
         setStatus("Erreur de sauvegarde locale.");
-        alert("La sauvegarde locale a échoué. Exporte le JSON.");
+        if (!silent) {
+          alert("La sauvegarde locale a échoué. Exporte le JSON.");
+        }
+        return false;
       }
     }
 
@@ -773,14 +777,13 @@
       knives.push(knife);
       selectedId = knife.id;
       renderTable();
-      saveData(true);
 
       requestAnimationFrame(() => {
         const firstInput = tableBody.querySelector(`tr[data-id="${knife.id}"] input`);
         if (firstInput) firstInput.focus();
       });
 
-      setStatus("Nouveau couteau ajouté.");
+      setStatus("Nouveau couteau ajouté. La sauvegarde se fera quand tu quitteras le champ.");
     }
 
     function duplicateSelected() {
@@ -841,18 +844,23 @@
       const reader = new FileReader();
 
       reader.onload = () => {
+        let parsed;
+        let arr;
+
         try {
-          const parsed = JSON.parse(reader.result);
-          const arr = Array.isArray(parsed) ? parsed : (parsed.knives || []);
-          knives = arr.map(createKnife);
-          selectedId = knives[0]?.id || null;
-          renderTable();
-          saveData(true);
-          setStatus("Import JSON réussi.");
-        } catch {
+          parsed = JSON.parse(reader.result);
+          arr = Array.isArray(parsed) ? parsed : (parsed.knives || []);
+        } catch (e) {
           alert("Le fichier JSON n'est pas valide.");
           setStatus("Import JSON impossible.");
+          return;
         }
+
+        knives = arr.map(createKnife);
+        selectedId = knives[0]?.id || null;
+        renderTable();
+        const ok = saveData(true);
+        setStatus(ok ? "Import JSON réussi." : "JSON lu, mais sauvegarde locale impossible.");
       };
 
       reader.readAsText(file, "utf-8");
