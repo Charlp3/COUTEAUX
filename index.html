@@ -617,6 +617,7 @@
     function makeCellTextarea(knife, field, placeholder) {
       const td = document.createElement("td");
       const ta = document.createElement("textarea");
+ta.rows = 5;
       ta.className = "cell-textarea";
       ta.placeholder = placeholder;
       ta.value = knife[field] || "";
