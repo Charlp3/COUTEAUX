@@ -132,6 +132,34 @@
       h1{font-size:1.7rem}
       .meta{font-size:.94rem}
     }
+@media print {
+
+  .topbar,
+  .toolbar,
+  .bottom,
+  button {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+  }
+
+  .panel,
+  .table-wrap,
+  table {
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  textarea {
+    border: none !important;
+  }
+}
   </style>
 </head>
 <body>
@@ -156,7 +184,7 @@
           <button class="success" id="exportBtn">Exporter JSON</button>
           <label class="file-label" for="importFile">Importer JSON</label>
           <input id="importFile" class="hidden" type="file" accept=".json,application/json">
-          <button id="saveBtn">Sauver maintenant</button>
+<button onclick="window.print()">📄 PDF</button>
         </div>
 
         <div class="toolgroup">
